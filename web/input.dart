@@ -6,7 +6,7 @@ int mouseX, mouseY;
 void onMouseDown(MouseEvent event) {
   if (event.button == 0) {
     mouseLeftDown = true;
-  } else if (event.button == 1) {
+  } else if (event.button == 2) {
     mouseRightDown = true;
   }
 }
@@ -14,7 +14,7 @@ void onMouseDown(MouseEvent event) {
 void onMouseUp(MouseEvent event) {
   if (event.button == 0) {
     mouseLeftDown = false;
-  } else if (event.button == 1) {
+  } else if (event.button == 2) {
     mouseRightDown = false;
   }
 }

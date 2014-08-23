@@ -26,8 +26,12 @@ void main() {
   canvas.onMouseUp.listen(onMouseUp);
   canvas.onMouseMove.listen(onMouseMove);
   canvas.onFullscreenChange.listen(onFullScreenChange);
-  InputElement fullscreenButton = querySelector('#fullscreen');
-  fullscreenButton.onClick.listen((_) => goFullscreen());
+  InputElement f = querySelector('#fullscreen');
+  f.onClick.listen((_) => goFullscreen());
+  InputElement c = querySelector('#clear');
+  c.onClick.listen((_) => level.clearConnections());
+  InputElement h = querySelector('#help');
+  h.onClick.listen((_) => gameState.help());
   lastUpdate = 0;
   random = new Random();
   gameState = new PlayingState();
@@ -53,12 +57,9 @@ void frame(num time) {
   if (lastUpdate == 0) {
     lastUpdate = time;
   } else {
-    gameState.update(time - lastUpdate);
+    gameState.tick(time - lastUpdate);
     lastUpdate = time;
   }
-  bufferContext.clearRect(0, 0, canvas.width, canvas.height);
-  gameState.draw();
-  canvasContext.clearRect(0, 0, canvas.width, canvas.height);
-  canvasContext.drawImage(buffer, 0, 0);
+  gameState.render();
   window.animationFrame.then(frame);
 }
