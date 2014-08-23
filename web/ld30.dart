@@ -18,6 +18,10 @@ void main() {
   buffer = new CanvasElement(width: canvas.width, height: canvas.height);
   canvasContext = canvas.context2D;
   bufferContext = buffer.context2D;
+  mouseX = (canvas.width / 2).round();
+  mouseY = (canvas.height / 2).round();
+  mouseLeftDown = false;
+  mouseRightDown = false;
   canvas.onMouseDown.listen(onMouseDown);
   canvas.onMouseUp.listen(onMouseUp);
   canvas.onMouseMove.listen(onMouseMove);

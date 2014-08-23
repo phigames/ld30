@@ -13,6 +13,8 @@ class Level {
   int equalityTime;
   Planet connectPlanet;
   int connectMouseX, connectMouseY;
+  Planet movePlanet;
+  int stage;
   bool won;
   
   Level() {
@@ -28,12 +30,13 @@ class Level {
     connectPlanet = null;
     connectMouseX = 0;
     connectMouseY = 0;
+    stage = 1;
     won = false;
   }
   
   void updateScreen() {
-    screenX = (-canvas.width / 2 - (canvas.width / 2 - mouseX) / 2) / screenScale;
-    screenY = (-canvas.height / 2 - (canvas.height / 2 - mouseY) / 2) / screenScale;
+    screenX = (-canvas.width / 2 - (canvas.width / 2 - mouseX) / 3) / screenScale;
+    screenY = (-canvas.height / 2 - (canvas.height / 2 - mouseY) / 3) / screenScale;
   }
   
   void nextStage() {
@@ -41,13 +44,14 @@ class Level {
     screenScale *= 0.9;
     updateScreen();
     planets.add(new Planet((random.nextDouble() - 0.5) * 700 / screenScale, (random.nextDouble() - 0.5) * 400 / screenScale, '#008800', random.nextDouble() * 100 + 50, random.nextInt(40) / 100));
+    stage++;
   }
   
   void update(num time) {
     updateTime += time;
     updateScreen();
     if (connectPlanet != null) {
-      if (mouseDown) {
+      if (mouseLeftDown) {
         connectMouseX = mouseX;
         connectMouseY = mouseY;
       } else {
@@ -66,7 +70,7 @@ class Level {
         connectPlanet = null;
       }
     } else {
-      if (mouseDown) {
+      if (mouseLeftDown) {
         num mx = mouseX / screenScale + screenX;
         num my = mouseY / screenScale + screenY;
         for (int i = 0; i < planets.length; i++) {
@@ -74,6 +78,25 @@ class Level {
             connectPlanet = planets[i];
             connectMouseX = mouseX;
             connectMouseY = mouseY;
+            break;
+          }
+        }
+      }
+    }
+    if (movePlanet != null) {
+      if (mouseRightDown) {
+        movePlanet.x = mouseX / screenScale + screenX;
+        movePlanet.y = mouseY / screenScale + screenY;
+      } else {
+        movePlanet = null;
+      }
+    } else {
+      if (mouseRightDown) {
+        num mx = mouseX / screenScale + screenX;
+        num my = mouseY / screenScale + screenY;
+        for (int i = 0; i < planets.length; i++) {
+          if (planets[i].contains(mx, my)) {
+            movePlanet = planets[i];
             break;
           }
         }
@@ -119,7 +142,7 @@ class Level {
       }
       updateTime -= 50;
     }
-    if (won && mouseDown) {
+    if (won && mouseLeftDown) {
       nextStage();
     }
   }
@@ -134,6 +157,10 @@ class Level {
     for (int i = 0; i < planets.length; i++) {
       planets[i].draw();
     }
+    bufferContext.fillStyle = '#000000';
+    bufferContext.font = '50px coda';
+    bufferContext.textAlign = 'left';
+    bufferContext.fillText('Stage ' + stage.toString(), 20, 70);
     bufferContext.beginPath();
     bufferContext.rect(canvas.width - 70, 20, 50, canvas.height - 40);
     bufferContext.fillStyle = '#DDDDDD';

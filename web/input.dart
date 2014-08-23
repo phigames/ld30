@@ -1,14 +1,22 @@
 part of ld30;
 
-bool mouseDown = false;
-int mouseX = 0, mouseY = 0;
+bool mouseLeftDown, mouseRightDown;
+int mouseX, mouseY;
 
 void onMouseDown(MouseEvent event) {
-  mouseDown = true;
+  if (event.button == 0) {
+    mouseLeftDown = true;
+  } else if (event.button == 1) {
+    mouseRightDown = true;
+  }
 }
 
 void onMouseUp(MouseEvent event) {
-  mouseDown = false;
+  if (event.button == 0) {
+    mouseLeftDown = false;
+  } else if (event.button == 1) {
+    mouseRightDown = false;
+  }
 }
 
 void onMouseMove(MouseEvent event) {
