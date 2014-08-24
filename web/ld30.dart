@@ -6,6 +6,7 @@ import 'dart:math';
 part 'gamestate.dart';
 part 'level.dart';
 part 'input.dart';
+part 'resources.dart';
 
 CanvasElement canvas, buffer;
 CanvasRenderingContext2D canvasContext, bufferContext;
@@ -14,6 +15,7 @@ Random random;
 GameState gameState;
 
 void main() {
+  loadAudio();
   canvas = querySelector('#canvas');
   buffer = new CanvasElement(width: canvas.width, height: canvas.height);
   canvasContext = canvas.context2D;
@@ -39,7 +41,9 @@ void main() {
 }
 
 void goFullscreen() {
-  canvas.requestFullscreen();
+  if (document.fullscreenEnabled) {
+    canvas.requestFullscreen();
+  }
 }
 
 void onFullScreenChange(Event event) {

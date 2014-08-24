@@ -20,6 +20,6 @@ void onMouseUp(MouseEvent event) {
 }
 
 void onMouseMove(MouseEvent event) {
-  mouseX = event.layer.x;
-  mouseY = event.layer.y;
+  mouseX = event.client.x - canvas.offsetLeft;
+  mouseY = event.client.y - canvas.offsetTop;
 }

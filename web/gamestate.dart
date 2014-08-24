@@ -64,10 +64,31 @@ abstract class GameState {
   
 }
 
+class IntroState extends GameState {
+  
+  IntroState() {
+    
+  }
+  
+  void update(num time) {
+    
+  }
+  
+  void draw() {
+    bufferContext.fillStyle = '#000000';
+    bufferContext.fillRect(0, 0, canvas.width, canvas.height);
+  }
+  
+  void help() { }
+  
+}
+
 class PlayingState extends GameState {
   
   PlayingState() {
     level = new Level();
+    musicLucta.loop = true;
+    musicLucta.play();
   }
   
   void update(num time) {

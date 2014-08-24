@@ -7,44 +7,72 @@ class Level {
   num updateTime;
   num screenX, screenY;
   num screenScale;
+  num screenScaleTarget;
   List<Planet> planets;
+  List<Highlight> highlights;
+  List<BackgroundPlanet> backgroundPlanets;
   int equilibriumTime;
   num equality;
   Planet connectPlanet;
   int connectMouseX, connectMouseY;
   Planet movePlanet;
   int stage;
+  bool helped;
   bool won;
+  List<String> successMessages;
+  String successMessage;
   
   Level() {
     updateTime = 0;
-    screenScale = 1;
+    screenScale = 10;
+    screenScaleTarget = 1;
     updateScreen();
+    planets = new List<Planet>();
+    planets.add(new Planet(-150, 0, '#880000', 50, 0.1));
+    planets.add(new Planet(150, 0, '#000088', 150, 0.15));
+    highlights = new List<Highlight>();
+    backgroundPlanets = new List<BackgroundPlanet>();
+    for (int i = 0; i < 20; i++) {
+      backgroundPlanets.add(new BackgroundPlanet());
+    }
     equilibriumTime = 0;
     equality = 0;
-    planets = new List<Planet>();
-    planets.add(new Planet(-150, 0, '#880000', 100, 0.1));
-    planets.add(new Planet(150, 0, '#000088', 100, 0.15));
     connectPlanet = null;
     connectMouseX = 0;
     connectMouseY = 0;
     stage = 1;
+    helped = false;
     won = false;
+    successMessages = [ 'You did it.' , 'Success.' , 'Congratulations.' , 'You rule.' , 'You\'re the one.' , 'Good work.' , 'I admire you.' , 'This is too easy for you.' , 'Have a cookie.' ];
+    successMessage = successMessages[0];
   }
   
   void updateScreen() {
+    screenScale += (screenScaleTarget - screenScale) / 10;
     screenX = (-canvas.width / 2 - (canvas.width / 2 - mouseX) / 3) / screenScale;
     screenY = (-canvas.height / 2 - (canvas.height / 2 - mouseY) / 3) / screenScale;
   }
   
   void nextStage() {
     won = false;
-    screenScale *= 0.9;
-    updateScreen();
+    num x = (random.nextDouble() - 0.5) * 700 / screenScale;
+    num y = (random.nextDouble() - 0.5) * 400 / screenScale;
     String c = '#' + (random.nextInt(0x88) + 0x10).toRadixString(16) + (random.nextInt(0x88) + 0x10).toRadixString(16) + (random.nextInt(0x88) + 0x10).toRadixString(16);
-    print(c);
-    planets.add(new Planet((random.nextDouble() - 0.5) * 700 / screenScale, (random.nextDouble() - 0.5) * 400 / screenScale, c, random.nextDouble() * 100 + 50, (random.nextInt(stage * 5) + 5) / 100));
+    num v = random.nextDouble() * 100 + 50;
+    num r = (random.nextInt(stage * 5) + 5) / 100;
+    while (r > 50) {
+      r -= 30;
+    }
+    planets.add(new Planet(x, y, c, random.nextDouble() * 100 + 50, r));
+    highlights.add(new Highlight(x, y, v / 3 + 30));
     stage++;
+    screenScaleTarget = 1 / stage + 0.4;
+    if (stage <= 4) {
+      helped = false;
+    }
+    successMessage = successMessages[random.nextInt(min(stage + 2, successMessages.length))];
+    soundDingHigh.currentTime = 0;
+    soundDingHigh.play();
   }
   
   void clearConnections() {
@@ -55,14 +83,15 @@ class Level {
   
   void help() {
     if (stage == 1) {
-      gameState.fireCaption('Use your mouse to draw or remove arrows between planets.', '#000000', 5000);
+      gameState.fireCaption('Use your left mouse button to draw or remove arrows between planets.', '#000000', 5000);
     } else if (stage == 2) {
       gameState.fireCaption('The numbers indicate how fast population is transported.', '#000000', 5000);
     } else if (stage == 3) {
       gameState.fireCaption('Use your right mouse button to move planets.', '#000000', 5000);
-    } else if (stage == 4) {
+    } else if (stage >= 4) {
       gameState.fireCaption('If you\'re stuck, try clearing all the connections and starting from scratch.', '#000000', 5000);
     }
+    helped = true;
   }
   
   void update(num time) {
@@ -79,6 +108,8 @@ class Level {
           if (planets[i] != connectPlanet && planets[i].contains(mx, my)) {
             if (!connectPlanet.connections.contains(planets[i])) {
               connectPlanet.connections.add(planets[i]);
+              soundDingLow.currentTime = 0;
+              soundDingLow.play();
             } else {
               connectPlanet.connections.remove(planets[i]);
             }
@@ -155,27 +186,45 @@ class Level {
       }
       updateTime -= 50;
     }
+    for (int i = 0; i < highlights.length; i++) {
+      highlights[i].update(time);
+      if (highlights[i].done) {
+        highlights.removeAt(i);
+        i--;
+      }
+    }
+    for (int i = 0; i < backgroundPlanets.length; i++) {
+      backgroundPlanets[i].update(time);
+    }
     if (won && mouseLeftDown) {
-      print(equality);
       nextStage();
+    }
+    if (!helped) {
+      help();
     }
   }
   
   void draw() {
+    for (int i = 0; i < backgroundPlanets.length; i++) {
+      backgroundPlanets[i].draw();
+    }
     for (int i = 0; i < planets.length; i++) {
       planets[i].drawConnections();
     }
     if (connectPlanet != null) {
-      connectPlanet.drawArrow(connectMouseX / screenScale + screenX, connectMouseY / screenScale + screenY);
+      connectPlanet.drawArrow(connectMouseX / screenScale + screenX, connectMouseY / screenScale + screenY, 0);
     }
     for (int i = 0; i < planets.length; i++) {
       planets[i].draw();
+    }
+    for (int i = 0; i < highlights.length; i++) {
+      highlights[i].draw();
     }
     // --- stage --- \\
     bufferContext.fillStyle = '#000000';
     bufferContext.font = '50px coda';
     bufferContext.textAlign = 'left';
-    bufferContext.fillText('Stage ' + stage.toString(), 20, 70);
+    bufferContext.fillText('Stage ' + stage.toString(), 20, 60);
     // --- equality --- \\
     bufferContext.beginPath();
     bufferContext.rect(canvas.width - 70, 20, 50, canvas.height - 40);
@@ -196,7 +245,7 @@ class Level {
     bufferContext.lineWidth = 4;
     bufferContext.lineJoin = 'round';
     bufferContext.fill();
-    // --- shreshold --- \\
+    // --- threshold --- \\
     bufferContext.beginPath();
     num l = 22 + (canvas.height - 44) / 4;
     bufferContext.moveTo(canvas.width - 80, l);
@@ -209,13 +258,13 @@ class Level {
       num my = mouseY - canvas.height / 2;
       bufferContext.fillStyle = '#AAAAAA';
       bufferContext.globalAlpha = 0.5;
-      bufferContext.font = 'bold 60px coda';
+      bufferContext.font = 'bold 55px coda';
       bufferContext.textAlign = 'center';
-      bufferContext.fillText('You\'ve did it.', canvas.width / 2 + mx / 100, canvas.height / 3 + my / 100 + 3, 210);
+      bufferContext.fillText(successMessage, canvas.width / 2 + mx / 100, canvas.height / 3 + my / 100 + 3, 410);
       bufferContext.fillStyle = '#000000';
       bufferContext.globalAlpha = 1;
       bufferContext.font = 'bold 50px coda';
-      bufferContext.fillText('You\'ve did it.', canvas.width / 2 - mx / 100, canvas.height / 3 - my / 100, 200);
+      bufferContext.fillText(successMessage, canvas.width / 2 - mx / 100, canvas.height / 3 - my / 100, 400);
       bufferContext.fillStyle = '#000000';
       bufferContext.globalAlpha = 1;
       bufferContext.font = '20px coda';
@@ -257,6 +306,9 @@ class Planet {
   
   void give() {
     num g = value * rate;
+    if (g * connections.length > value) {
+      g = value / connections.length;
+    }
     for (int i = 0; i < connections.length; i++) {
       connections[i].taking += g;
       value -= g;
@@ -267,7 +319,7 @@ class Planet {
   void take() {
     value += taking;
     updateRadius();
-    equilibrium = giving.round() == taking.round();
+    equilibrium = (giving * 5).round() == (taking * 5).round();
     taking = 0;
   }
   
@@ -275,12 +327,16 @@ class Planet {
     num xx = (x - level.screenX) * level.screenScale;
     num yy = (y - level.screenY) * level.screenScale;
     for (int i = 0; i < connections.length; i++) {
-      drawArrow(connections[i].x, connections[i].y);
+      if (connections[i].connections.contains(this)) {
+        drawArrow(connections[i].x, connections[i].y, 1);
+      } else {
+        drawArrow(connections[i].x, connections[i].y, 0);
+      }
     }
   }
   
-  void drawArrow(num headX, num headY) {
-    num b = rate * 50;
+  void drawArrow(num headX, num headY, num offset) {
+    num b = rate * 30 + 2;
     num xx = (x - level.screenX) * level.screenScale;
     num yy = (y - level.screenY) * level.screenScale;
     num hx = (headX - level.screenX) * level.screenScale;
@@ -291,12 +347,30 @@ class Planet {
     if (h == 0) {
       v = b;
     }
-    bufferContext.beginPath();
-    bufferContext.moveTo(xx - h, yy - v);
-    bufferContext.lineTo(hx, hy);
-    bufferContext.lineTo(xx + h, yy + v);
-    bufferContext.fillStyle = color;
-    bufferContext.fill();
+    if (hy - yy > 0) {
+      bufferContext.beginPath();
+      bufferContext.moveTo(xx - h + h * offset, yy - v + v * offset);
+      bufferContext.lineTo(hx, hy);
+      bufferContext.lineTo(xx + h + h * offset, yy + v + v * offset);
+      bufferContext.fillStyle = color;
+      bufferContext.fill();
+    } else {
+      if (hy - yy == 0 && hx - xx < 0) {
+        bufferContext.beginPath();
+        bufferContext.moveTo(xx - h + h * offset, yy - v + v * offset);
+        bufferContext.lineTo(hx, hy);
+        bufferContext.lineTo(xx + h + h * offset, yy + v + v * offset);
+        bufferContext.fillStyle = color;
+        bufferContext.fill();
+      } else {
+        bufferContext.beginPath();
+        bufferContext.moveTo(xx - h + h * -offset, yy - v + v * -offset);
+        bufferContext.lineTo(hx, hy);
+        bufferContext.lineTo(xx + h + h * -offset, yy + v + v * -offset);
+        bufferContext.fillStyle = color;
+        bufferContext.fill();
+      }
+    }
   }
   
   void draw() {
@@ -315,6 +389,83 @@ class Planet {
     }
     bufferContext.textAlign = 'center';
     bufferContext.fillText((rate * 100).round().toString(), xx, yy + 8);
+  }
+  
+}
+
+class Highlight {
+  
+  num x, y;
+  num radius;
+  num alpha;
+  bool done;
+  
+  Highlight(this.x, this.y, [this.radius = 0]) {
+    alpha = 1;
+    done = false;
+  }
+  
+  void update(num time) {
+    radius += time / 5;
+    alpha -= time / 1000;
+    if (alpha <= 0) {
+      alpha = 0;
+      done = true;
+    }
+  }
+  
+  void draw() {
+    bufferContext.beginPath();
+    bufferContext.arc((x - level.screenX) * level.screenScale, (y - level.screenY) * level.screenScale, radius * level.screenScale, 0, PI * 2);
+    bufferContext.strokeStyle = '#888888';
+    //bufferContext.globalCompositeOperation = 'lighter';
+    bufferContext.globalAlpha = alpha;
+    bufferContext.lineWidth = 5;
+    bufferContext.stroke();
+    bufferContext.globalCompositeOperation = 'source-over';
+    bufferContext.globalAlpha = 1;
+  }
+  
+}
+
+class BackgroundPlanet {
+  
+  num x, y;
+  num radius;
+  String color;
+  num speedX, speedY;
+  
+  BackgroundPlanet() {
+    x = (random.nextDouble() * 2 - 1) * canvas.width;
+    y = (random.nextDouble() * 2 - 1) * canvas.height;
+    radius = random.nextDouble() * 30 + 20;
+    color = '#' + (random.nextInt(0x44) + 0xBB).toRadixString(16) + (random.nextInt(0x44) + 0xBB).toRadixString(16) + (random.nextInt(0x44) + 0xBB).toRadixString(16);
+    speedX = (random.nextDouble() - 0.5) / 70;
+    speedY = (random.nextDouble() - 0.5) / 70;
+  }
+  
+  void update(num time) {
+    if (x < -canvas.width) {
+      speedX = speedX.abs();
+    } else if (x > canvas.width) {
+      speedX = -speedX.abs();
+    }
+    if (y < -canvas.height) {
+      speedY = speedY.abs();
+    } else if (y > canvas.height) {
+      speedY = -speedY.abs();
+    }
+    x += speedX * time;
+    y += speedY * time;
+  }
+  
+  void draw() {
+    num xx = (x - level.screenX - (canvas.width / 2 - mouseX) / 4) * level.screenScale;
+    num yy = (y - level.screenY - (canvas.height / 2 - mouseY) / 4) * level.screenScale;
+    bufferContext.beginPath();
+    bufferContext.arc(xx, yy, radius * level.screenScale, 0, 2 * PI);
+    bufferContext.fillStyle = color;
+    bufferContext.fill();
   }
   
 }
