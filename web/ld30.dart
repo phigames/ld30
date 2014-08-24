@@ -36,7 +36,7 @@ void main() {
   h.onClick.listen((_) => gameState.help());
   lastUpdate = 0;
   random = new Random();
-  gameState = new PlayingState();
+  gameState = new IntroState();
   window.animationFrame.then(frame);
 }
 
