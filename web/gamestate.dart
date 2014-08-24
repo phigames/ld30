@@ -66,12 +66,114 @@ abstract class GameState {
 
 class MenuState extends GameState {
   
+  List<String> quotes;
+  num quoteTime;
+  num blackTime;
+  
+  MenuState() {
+    quotes = [ '"Eppur si muove." - Galileo' ,
+               '"Denn nur vom Nutzen wird die Welt regiert." - Friedrich Schiller' ,
+               '"They most the world enjoy who least admire." - Edward Young' ,
+               '"L\'universe est une machine à faire des dieux." - Henri Bergson' ,
+               '"Equilibrium is a figment of the human imagination." - Kenneth Boulding' ,
+               '"Do ut des" - Some Roman guy' ,
+               '"Games lubricate the body and the mind." - Benjamin Franklin' ,
+               '"This game is awesome!" - A candid critic' ];
+    quoteTime = 5000;
+    blackTime = -1;
+  }
+  
   void update(num time) {
-    
+    quoteTime += time;
+    if (quoteTime >= 5000) {
+      fireCaption(quotes[random.nextInt(quotes.length)], '#000000', 3000);
+      quoteTime -= 5000;
+    }
+    if (blackTime >= 0) {
+      blackTime += time;
+    }
+    num dx = mouseX - (canvas.width / 2 + (canvas.width / 2 - mouseX) / 3);
+    num dy = mouseY - (canvas.height / 3 + (canvas.height / 2 - mouseY) / 3);
+    if (mouseLeftDown && dx * dx + dy * dy <= 6400) {
+      blackTime = 0;
+    }
+    dx = mouseX - (canvas.width / 3 + (canvas.width / 2 - mouseX) / 3);
+    dy = mouseY - (canvas.height / 2 + (canvas.height / 2 - mouseY) / 3);
+    if (mouseLeftDown && dx * dx + dy * dy <= 900) {
+      window.location.assign('http://www.ludumdare.com/');
+    }
+    dx = mouseX - (canvas.width * 2 / 3 + (canvas.width / 2 - mouseX) / 3);
+    dy = mouseY - (canvas.height * 2 / 3 + (canvas.height / 2 - mouseY) / 3);
+    if (mouseLeftDown && dx * dx + dy * dy <= 900) {
+      window.location.assign('http://www.ludumdare.com/compo/author/phi/');
+    }
   }
   
   void draw() {
-    
+    num x, y, dx, dy;
+    // --- Play --- \\
+    x = canvas.width / 2 + (canvas.width / 2 - mouseX) / 3;
+    y = canvas.height / 3 + (canvas.height / 2 - mouseY) / 3;
+    dx = mouseX - x;
+    dy = mouseY - y;
+    bufferContext.fillStyle = '#000088';
+    bufferContext.beginPath();
+    bufferContext.arc(x, y, 80, 0, PI * 2);
+    bufferContext.fill();
+    if (dx * dx + dy * dy <= 6400) {
+      bufferContext.fillStyle = '#FFFFFF';
+      bufferContext.font = 'bold 22px coda';
+    } else {
+      bufferContext.fillStyle = '#AAAAAA';
+      bufferContext.font = 'bold 20px coda';
+    }
+    bufferContext.textAlign = 'center';
+    bufferContext.fillText('Play', x, y + 8);
+    // ---- LD ---- \\
+    x = canvas.width / 3 + (canvas.width / 2 - mouseX) / 3;
+    y = canvas.height / 2 + (canvas.height / 2 - mouseY) / 3;
+    dx = mouseX - x;
+    dy = mouseY - y;
+    bufferContext.fillStyle = '#880000';
+    bufferContext.beginPath();
+    bufferContext.arc(x, y, 30, 0, PI * 2);
+    bufferContext.fill();
+    if (dx * dx + dy * dy <= 900) {
+      bufferContext.fillStyle = '#FFFFFF';
+      bufferContext.font = 'bold 22px coda';
+    } else {
+      bufferContext.fillStyle = '#AAAAAA';
+      bufferContext.font = 'bold 20px coda';
+    }
+    bufferContext.textAlign = 'center';
+    bufferContext.fillText('LD', x, y + 8);
+    // --- phi --- \\
+    x = canvas.width * 2 / 3 + (canvas.width / 2 - mouseX) / 3;
+    y = canvas.height * 2 / 3 + (canvas.height / 2 - mouseY) / 3;
+    dx = mouseX - x;
+    dy = mouseY - y;
+    bufferContext.fillStyle = '#008800';
+    bufferContext.beginPath();
+    bufferContext.arc(x, y, 20, 0, PI * 2);
+    bufferContext.fill();
+    if (dx * dx + dy * dy <= 400) {
+      bufferContext.fillStyle = '#FFFFFF';
+      bufferContext.font = 'bold 22px coda';
+    } else {
+      bufferContext.fillStyle = '#AAAAAA';
+      bufferContext.font = 'bold 20px coda';
+    }
+    bufferContext.textAlign = 'center';
+    bufferContext.fillText('phi', x, y + 8);
+    if (blackTime >= 0) {
+      bufferContext.fillStyle = '#000000';
+      bufferContext.globalAlpha = min(blackTime / 2000, 1);
+      bufferContext.fillRect(0, 0, canvas.width, canvas.height);
+      bufferContext.globalAlpha = 1;
+      if (blackTime >= 2000) {
+        gameState = new IntroState();
+      }
+    }
   }
   
   void help() {
@@ -89,7 +191,7 @@ class IntroState extends GameState {
   IntroState() {
     part = 0;
     partTime = 0;
-    captions = [ 'All planets are created equal.' , 'But some planets are more equal than others.' , 'These planets are unequally populated.' , 'Reach the Equilibrium.' ];
+    captions = [ '"All planets are created equal.' , 'But some planets are more equal than others."' , 'These planets are unequally populated.' , 'Reach the Equilibrium.' ];
     fireCaption(captions[0], '#FFFFFF', 4000);
     musicLucta.loop = true;
     musicLucta.play();
@@ -109,10 +211,10 @@ class IntroState extends GameState {
   }
   
   void draw() {
-    num r1 = 40;
-    num r2 = 100;
     bufferContext.fillStyle = '#000000';
     bufferContext.fillRect(0, 0, canvas.width, canvas.height);
+    num r1 = 40;
+    num r2 = 100;
     if (part == 0) {
       bufferContext.globalAlpha = min(partTime / 2000, 1);
     } else if (part == 3) {

@@ -43,7 +43,7 @@ class Level {
     stage = 1;
     helped = false;
     won = false;
-    successMessages = [ 'You did it.' , 'Success.' , 'Congratulations.' , 'You rule.' , 'You\'re the one.' , 'Good work.' , 'I admire you.' , 'This is too easy for you.' , 'Have a cookie.' ];
+    successMessages = [ 'You did it.' , 'Success.' , 'Congratulations.' , 'You rule.' , 'Good work.' , 'I admire you.' , 'This is too easy for you.' , 'Have a cookie.' ];
     successMessage = successMessages[0];
   }
   
@@ -83,7 +83,7 @@ class Level {
   
   void help() {
     if (stage == 1) {
-      gameState.fireCaption('Use your left mouse button to draw or remove arrows between planets.', '#000000', 5000);
+      gameState.fireCaption('Drag with your left mouse button to create or remove arrows between planets.', '#000000', 5000);
     } else if (stage == 2) {
       gameState.fireCaption('The numbers indicate how fast population is transported.', '#000000', 5000);
     } else if (stage == 3) {

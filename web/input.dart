@@ -21,8 +21,8 @@ void onMouseUp(MouseEvent event) {
 
 void onMouseMove(MouseEvent event) {
   if (document.fullscreenElement == null) {
-    mouseX = event.client.x - canvas.offsetLeft;
-    mouseY = event.client.y - canvas.offsetTop;
+    mouseX = event.client.x - canvas.offsetLeft + window.scrollX;
+    mouseY = event.client.y - canvas.offsetTop + window.scrollY;
   } else {
     mouseX = event.client.x;
     mouseY = event.client.y;
